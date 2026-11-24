@@ -35,7 +35,7 @@ import { connectToDB } from "../../../../utils/database";
                     email: profile.email
                 });
                 
-                //create user
+
                 if (!userExists) {
                     let username = profile.name
                         ? profile.name.replace(/\s+/g, "").toLowerCase()
