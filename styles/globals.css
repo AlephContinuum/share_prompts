@@ -227,35 +227,35 @@
   padding: 1.25rem;
 }
 
+/* Cards wrap in centered rows: each card is 280-360px wide, so phones get 1 per row,
+   tablets 2, desktops 3. (The Playground's own grid overrides the card width.) */
 .prompt_layout {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-start;
+  width: 100%;
+  max-width: calc(3 * 360px + 2 * 1.5rem);
+  margin-left: auto;
+  margin-right: auto;
+  gap: 1.5rem;
   padding-top: 2rem;
   padding-bottom: 2rem;
-  column-gap: 1.5rem;
 }
 
-.prompt_layout > * + * {
-  margin-top: 1.5rem;
+.prompt_layout > .prompt_card {
+  flex: 1 1 280px;
+  max-width: 360px;
+  min-width: 0; /* let a long username shrink (it is cut off with "…") instead of widening the card */
 }
 
-@media screen and (min-width: 640px) {
-  .prompt_layout {
-    columns: 2;
-  }
-}
-
-@media screen and (min-width: 1280px) {
-  .prompt_layout {
-    columns: 3;
-  }
-}
-
-/* Feed Component */
+/* Feed Component (the search box inside stays at max-w-xl) */
 .feed {
   margin-top: 4rem;
   margin-left: auto;
   margin-right: auto;
   width: 100%;
-  max-width: 36rem;
+  max-width: 72rem;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -345,12 +345,6 @@
   backdrop-filter: blur(16px);
   width: 100%;
   height: auto;
-}
-
-@media screen and (min-width: 768px) {
-  .prompt_card {
-    max-width: 360px;
-  }
 }
 
 .flex-center {

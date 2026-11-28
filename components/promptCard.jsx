@@ -69,7 +69,7 @@ const PromptCard = ({ post, handleEdit, handleDelete, handleTagClick }) => {
     <div className='prompt_card'>
       <div className='flex justify-between items-start gap-5'>
         <div
-          className='flex-1 flex justify-start items-center gap-3 cursor-pointer'
+          className='flex-1 min-w-0 flex justify-start items-center gap-3 cursor-pointer'
           onClick={handleProfileClick}
         >
           <Image
@@ -77,15 +77,15 @@ const PromptCard = ({ post, handleEdit, handleDelete, handleTagClick }) => {
             alt='user_image'
             width={40}
             height={40}
-            className='rounded-full object-contain'
+            className='shrink-0 rounded-full object-contain'
           />
-          <div className='flex flex-col'>
-            <h3 className='font-satoshi font-semibold text-gray-900'>{creator.username}</h3>
+          <div className='flex min-w-0 flex-col'>
+            <h3 className='truncate font-satoshi font-semibold text-gray-900' title={creator.username}>{creator.username}</h3>
             <p className='font-inter text-xs text-gray-500'>{timeAgo(createdAt)}</p>
           </div>
         </div>
 
-        <button type='button' className='copy_btn' onClick={handleCopy} aria-label='Copy prompt'>
+        <button type='button' className='copy_btn shrink-0' onClick={handleCopy} aria-label='Copy prompt'>
           <Image
             src={copied ? "/assets/icons/tick.svg" : "/assets/icons/copy.svg"}
             alt={copied ? "tick_icon" : "copy_icon"}
@@ -95,7 +95,7 @@ const PromptCard = ({ post, handleEdit, handleDelete, handleTagClick }) => {
         </button>
       </div>
 
-      <p className='my-4 font-satoshi text-sm text-gray-700 whitespace-pre-wrap'>{post.prompt}</p>
+      <p className='my-4 font-satoshi text-sm text-gray-700 whitespace-pre-wrap break-words'>{post.prompt}</p>
       <p
         className='font-inter text-sm blue_gradient cursor-pointer'
         onClick={() => handleTagClick && handleTagClick(tag)}
