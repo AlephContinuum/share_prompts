@@ -3,6 +3,9 @@ frontend:
   phases:
     preBuild:
       commands:
+        # Same Node.js major version as local development
+        - nvm install 22 && nvm use 22
+        - node --version
         - npm ci
     build:
       commands:
