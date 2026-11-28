@@ -15,7 +15,7 @@ Amazon Bedrock (Converse API) · Tailwind CSS · deployable on AWS Amplify
   (A, B, C...) so it can't favour a model it recognises, including itself.
 - **Improve with AI**: rewrites a draft prompt with a role, output format and constraints, and suggests tags.
 - **Community feed**: create, edit and delete prompts, like them, sort by newest or most liked, and search.
-- **Multi-provider AI layer** (`lib/llm.js`): Amazon Bedrock, Groq, Google Gemini, NVIDIA, OpenAI and DeepSeek behind one
+- **Multi-provider AI layer** (`lib/llm.js`): Amazon Bedrock, Groq, Google Gemini, NVIDIA, Verda (Kimi), OpenAI and DeepSeek behind one
   `generate()` call. Every provider with credentials is enabled at once; with none, a mock mode runs
   with no API key.
 
@@ -28,7 +28,7 @@ Browser (React client components)
 Next.js route handlers (server)
    ├── /api/prompt/*         CRUD + likes      ──► MongoDB Atlas (Mongoose)
    ├── /api/ai/run           parallel models + judge ─┐
-   ├── /api/ai/suggest       improve + tag           ├─► lib/llm.js ──► Bedrock / Groq / Gemini / NVIDIA / OpenAI / DeepSeek
+   ├── /api/ai/suggest       improve + tag           ├─► lib/llm.js ──► Bedrock / Groq / Gemini / NVIDIA / Verda / OpenAI / DeepSeek
    └── /api/auth/*           NextAuth (Google)       ┘
 ```
 
@@ -50,7 +50,7 @@ npm run dev               # http://localhost:3000
 ```
 
 Without any AI key the app runs in **mock mode** with fake answers, so the UI can be tried end to end.
-For real answers, set any of `GROQ_API_KEY` or `GEMINI_API_KEY` (free tiers), `NVIDIA_API_KEY`,
+For real answers, set any of `GROQ_API_KEY` or `GEMINI_API_KEY` (free tiers), `NVIDIA_API_KEY`, `VERDA_API_KEY`,
 `OPENAI_API_KEY`, `DEEPSEEK_API_KEY` or the
 `BEDROCK_*` variables. See `.env.example` for model lists and the optional `JUDGE_MODEL` / `UTILITY_MODEL`.
 
