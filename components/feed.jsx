@@ -1,93 +1,96 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 
 import PromptCard from "./promptCard";
 
-const PromptCardList = ({ data, handleTagClick }) => {
-  return (
-    <div className='mt-16 prompt_layout'>
-      {data.map((post) => (
-        <PromptCard
-          key={post._id}
-          post={post}
-          handleTagClick={handleTagClick}
-        />
-      ))}
-    </div>
-  );
-};
+const escapeRegex = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+const PromptCardList = ({ data, handleTagClick }) => (
+  <div className='mt-10 prompt_layout'>
+    {data.map((post) => (
+      <PromptCard key={post._id} post={post} handleTagClick={handleTagClick} />
+    ))}
+  </div>
+);
+
+const SORTS = [
+  ["new", "Newest"],
+  ["popular", "Most liked"],
+];
 
 const Feed = () => {
   const [allPosts, setAllPosts] = useState([]);
-
-  // Search states
+  const [sort, setSort] = useState("new");
+  const [loading, setLoading] = useState(true);
   const [searchText, setSearchText] = useState("");
-  const [searchTimeout, setSearchTimeout] = useState(null);
-  const [searchedResults, setSearchedResults] = useState([]);
-
-  const fetchPosts = async () => {
-    const response = await fetch("/api/prompt");
-    const data = await response.json();
-
-    setAllPosts(data);
-  };
+  const [debounced, setDebounced] = useState("");
 
   useEffect(() => {
-    fetchPosts();
-  }, []);
+    setLoading(true);
+    fetch(`/api/prompt?sort=${sort}`)
+      .then((r) => (r.ok ? r.json() : []))
+      .then(setAllPosts)
+      .finally(() => setLoading(false));
+  }, [sort]);
 
-  const filterPrompts = (searchtext) => {
-    const regex = new RegExp(searchtext, "i"); // 'i' flag for case-insensitive search
+  // Debounce typing so we don't filter on every keystroke
+  useEffect(() => {
+    const t = setTimeout(() => setDebounced(searchText), 300);
+    return () => clearTimeout(t);
+  }, [searchText]);
+
+  const visible = useMemo(() => {
+    const term = debounced.trim().replace(/^#/, "");
+    if (!term) return allPosts;
+    // Escape the text so symbols like "(" or "+" are searched literally instead of crashing
+    const regex = new RegExp(escapeRegex(term), "i");
     return allPosts.filter(
       (item) =>
-        regex.test(item.creator.username) ||
-        regex.test(item.tag) ||
-        regex.test(item.prompt)
+        regex.test(item.creator?.username ?? "") || regex.test(item.tag) || regex.test(item.prompt)
     );
-  };
-
-  const handleSearchChange = (e) => {
-    clearTimeout(searchTimeout);
-    setSearchText(e.target.value);
-
-    // debounce method
-    setSearchTimeout(
-      setTimeout(() => {
-        const searchResult = filterPrompts(e.target.value);
-        setSearchedResults(searchResult);
-      }, 500)
-    );
-  };
+  }, [allPosts, debounced]);
 
   const handleTagClick = (tagName) => {
     setSearchText(tagName);
-
-    const searchResult = filterPrompts(tagName);
-    setSearchedResults(searchResult);
+    setDebounced(tagName);
   };
 
   return (
     <section className='feed'>
-      <form className='relative w-full flex-center'>
+      <form className='relative w-full flex-center' onSubmit={(e) => e.preventDefault()}>
         <input
           type='text'
-          placeholder='Search for a tag or a username'
+          placeholder='Search for a tag, username or text'
           value={searchText}
-          onChange={handleSearchChange}
-          required
+          onChange={(e) => setSearchText(e.target.value)}
           className='search_input peer'
         />
       </form>
 
-      {/* All Prompts */}
-      {searchText ? (
-        <PromptCardList
-          data={searchedResults}
-          handleTagClick={handleTagClick}
-        />
+      <div className='mt-6 flex gap-2'>
+        {SORTS.map(([value, label]) => (
+          <button
+            key={value}
+            type='button'
+            onClick={() => setSort(value)}
+            className={`rounded-full border px-4 py-1 text-sm ${
+              sort === value
+                ? "border-black bg-black text-white"
+                : "border-gray-300 bg-white text-gray-700"
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {loading ? (
+        <p className='mt-10 text-sm text-gray-500'>Loading prompts...</p>
+      ) : visible.length === 0 ? (
+        <p className='mt-10 text-sm text-gray-500'>No prompts found.</p>
       ) : (
-        <PromptCardList data={allPosts} handleTagClick={handleTagClick} />
+        <PromptCardList data={visible} handleTagClick={handleTagClick} />
       )}
     </section>
   );

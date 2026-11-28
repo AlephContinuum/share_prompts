@@ -1,23 +1,27 @@
-import { connectToDB } from '@utils/database'
-import Prompt from '@models/prompts'
+import Prompt from "@models/prompts";
+import { connectToDB } from "@utils/database";
+import { getSessionUserId, unauthorized } from "@utils/auth";
 
 export const POST = async (req) => {
-    const { userId, prompt, tag } = await req.json();
+  // The creator comes from the server-side session, never from the request body.
+  const userId = await getSessionUserId();
+  if (!userId) return unauthorized();
 
-    try {
-        await connectToDB();
+  const { prompt, tag } = await req.json();
+  if (!prompt?.trim() || !tag?.trim()) {
+    return new Response("Prompt and tag are required", { status: 400 });
+  }
 
-        const newPrompt = await Prompt.create({
-            creator: userId,
-            prompt,
-            tag,
-        });
-
-        return new Response(JSON.stringify(newPrompt), { status: 201 });
-    } catch (error) {
-        console.error('Create prompt error:', error);
-        return new Response('Failed to create prompt', { status: 500 });
-    }
-}
-
-
+  try {
+    await connectToDB();
+    const newPrompt = await Prompt.create({
+      creator: userId,
+      prompt: prompt.trim(),
+      tag: tag.trim().replace(/^#/, ""),
+    });
+    return Response.json(newPrompt, { status: 201 });
+  } catch (error) {
+    console.error("Create prompt error:", error);
+    return new Response("Failed to create prompt", { status: 500 });
+  }
+};

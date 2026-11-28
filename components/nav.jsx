@@ -24,11 +24,11 @@ const Nav = () => {
         <nav className='flex-between w-full mb-16 pt-3'>
             <Link href= "/" className='flex gap-2 flex-center'>
                 <Image src="/assets/images/logo.svg" 
-                       alt="Proptopia Logo"
+                       alt="PromptLab logo"
                        width={30} 
                        height={30}
                        />
-                <p className='logo_text'>Promptopia</p>
+                <p className="logo_text">PromptLab</p>
             </Link>
 
 
@@ -36,6 +36,9 @@ const Nav = () => {
             <div className='sm:flex hidden'>
                 {session?.user ? (
                     <div className='flex gap-3 md:gap-5'>
+                        <Link href="/playground" className='outline_btn'>
+                            Playground
+                        </Link>
                         <Link href="/create-prompt" className='black_btn'>
                             Create Post
                         </Link>
@@ -88,11 +91,18 @@ const Nav = () => {
                                     My Profile
                                 </Link>
 
-                                <Link href="/profile"
+                                <Link href="/create-prompt"
                                     className='dropdown_link'
                                     onClick={() => setToggleDropdown (false)}>
 
                                     Create Prompt
+                                </Link>
+
+                                <Link href="/playground"
+                                    className='dropdown_link'
+                                    onClick={() => setToggleDropdown (false)}>
+
+                                    Playground
                                 </Link>
                                 <button type='button' onClick={() => {
                                     setToggleDropdown(false);
