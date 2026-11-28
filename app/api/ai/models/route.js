@@ -1,9 +1,13 @@
-import { getProvider } from "@lib/llm";
+import { getActiveProviders, getAvailableModels, getJudgeModel } from "@lib/llm";
 
 export const dynamic = "force-dynamic";
 
-// GET /api/ai/models -> which provider is active and which models the playground can use
+// GET /api/ai/models -> which providers are configured and which models the Playground can use
 export const GET = async () => {
-  const provider = getProvider();
-  return Response.json({ provider: provider.id, label: provider.label, models: provider.models() });
+  return Response.json({
+    providers: getActiveProviders(),
+    demo: getActiveProviders()[0] === "mock",
+    judge: getJudgeModel(),
+    models: getAvailableModels(),
+  });
 };

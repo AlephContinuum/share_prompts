@@ -8,12 +8,15 @@ Amazon Bedrock (Converse API) · Tailwind CSS · deployable on AWS Amplify
 
 ## Features
 
-- **Prompt Playground**: run one prompt on up to 4 models in parallel, with response time and token counts.
+- **Prompt Playground**: run one prompt on up to 4 models in parallel, across different providers, with
+  response time and token counts.
 - **Model council / judge**: a second-layer model compares the answers, explains the winner and writes a
-  combined best answer (a "mixture of agents" pattern).
+  combined best answer (a "mixture of agents" pattern). Answers are shown to the judge anonymously
+  (A, B, C...) so it can't favour a model it recognises, including itself.
 - **Improve with AI**: rewrites a draft prompt with a role, output format and constraints, and suggests tags.
 - **Community feed**: create, edit and delete prompts, like them, sort by newest or most liked, and search.
-- **Provider-agnostic AI layer** (`lib/llm.js`): Amazon Bedrock, Google Gemini, or a mock mode that runs
+- **Multi-provider AI layer** (`lib/llm.js`): Amazon Bedrock, Groq, Google Gemini, NVIDIA, OpenAI and DeepSeek behind one
+  `generate()` call. Every provider with credentials is enabled at once; with none, a mock mode runs
   with no API key.
 
 ## Architecture
@@ -25,7 +28,7 @@ Browser (React client components)
 Next.js route handlers (server)
    ├── /api/prompt/*         CRUD + likes      ──► MongoDB Atlas (Mongoose)
    ├── /api/ai/run           parallel models + judge ─┐
-   ├── /api/ai/suggest       improve + tag           ├─► lib/llm.js ──► Amazon Bedrock / Gemini / mock
+   ├── /api/ai/suggest       improve + tag           ├─► lib/llm.js ──► Bedrock / Groq / Gemini / NVIDIA / OpenAI / DeepSeek
    └── /api/auth/*           NextAuth (Google)       ┘
 ```
 
@@ -47,15 +50,17 @@ npm run dev               # http://localhost:3000
 ```
 
 Without any AI key the app runs in **mock mode** with fake answers, so the UI can be tried end to end.
-For real answers, set `GEMINI_API_KEY` (free tier) or the `BEDROCK_*` variables.
+For real answers, set any of `GROQ_API_KEY` or `GEMINI_API_KEY` (free tiers), `NVIDIA_API_KEY`,
+`OPENAI_API_KEY`, `DEEPSEEK_API_KEY` or the
+`BEDROCK_*` variables. See `.env.example` for model lists and the optional `JUDGE_MODEL` / `UTILITY_MODEL`.
 
 ## Deploying on AWS Amplify
 
 1. Push the repo to GitHub, then in the Amplify console choose **Create new app → GitHub** and pick this repo.
    Amplify detects Next.js and uses `amplify.yml`.
 2. Add environment variables: `MONGODB_URI`, `GOOGLE_ID`, `GOOGLE_CLIENT_SECRET`, `NEXTAUTH_SECRET`,
-   `NEXTAUTH_URL` (your Amplify URL), `LLM_PROVIDER=bedrock`, `BEDROCK_REGION`, `BEDROCK_MODELS`.
-   Amplify reserves `AWS_*` names, which is why the app reads `BEDROCK_*`.
+   `NEXTAUTH_URL` (your Amplify URL), `BEDROCK_ENABLED=true`, `BEDROCK_REGION`, `BEDROCK_MODELS`, plus any
+   other provider keys you use. Amplify reserves `AWS_*` names, which is why the app reads `BEDROCK_*`.
 3. Give the app an **IAM compute role** with `bedrock:InvokeModel` on the models you use
    (App settings → IAM roles → Compute role).
 4. In the Bedrock console, enable access to the models listed in `BEDROCK_MODELS`.

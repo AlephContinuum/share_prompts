@@ -9,7 +9,7 @@ frontend:
         # Amplify only exposes environment variables at build time.
         # Write the ones the server needs into .env.production so the
         # Next.js server (SSR + API routes) can read them at runtime.
-        - env | grep -E '^(MONGODB_URI|GOOGLE_ID|GOOGLE_CLIENT_SECRET|NEXTAUTH_URL|NEXTAUTH_SECRET|LLM_PROVIDER|BEDROCK_|GEMINI_)' >> .env.production || true
+        - env | grep -E '^(MONGODB_URI|GOOGLE_ID|GOOGLE_CLIENT_SECRET|NEXTAUTH_URL|NEXTAUTH_SECRET|BEDROCK_|GEMINI_|OPENAI_|DEEPSEEK_|GROQ_|NVIDIA_|JUDGE_MODEL|UTILITY_MODEL)' >> .env.production || true
         - npm run build
   artifacts:
     baseDirectory: .next

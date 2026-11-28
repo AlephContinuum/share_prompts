@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useSession, signIn } from "next-auth/react";
+import Markdown from "react-markdown";
 
 const MAX_MODELS = 4;
 
@@ -22,13 +23,25 @@ const Playground = () => {
   const [error, setError] = useState("");
   const [output, setOutput] = useState(null);
 
+  // "gemini:gemini-2.5-flash" -> "Google Gemini · gemini-2.5-flash"
+  const nameOf = (id) => {
+    const m = provider?.models.find((x) => x.id === id);
+    if (m) return `${m.label} · ${m.model}`;
+    return id ? id.slice(id.indexOf(":") + 1) : ""; // e.g. a judge not offered as a choice
+  };
+
   // Which provider/models the server has configured
   useEffect(() => {
     fetch("/api/ai/models")
       .then((r) => r.json())
       .then((data) => {
         setProvider(data);
-        setSelected(data.models.slice(0, 3));
+        // Pre-select one model from each provider first, so a run compares companies
+        const firstPerProvider = data.providers
+          .map((p) => data.models.find((m) => m.provider === p)?.id)
+          .filter(Boolean);
+        const rest = data.models.map((m) => m.id).filter((id) => !firstPerProvider.includes(id));
+        setSelected([...firstPerProvider, ...rest].slice(0, 3));
       })
       .catch(() => setError("Could not load models"));
   }, []);
@@ -82,7 +95,19 @@ const Playground = () => {
 
       {provider && (
         <p className='mt-3 text-sm text-gray-500'>
-          Provider: <span className='font-semibold text-gray-700'>{provider.label}</span>
+          {provider.demo ? (
+            <span className='font-semibold text-amber-700'>
+              Demo mode: no AI key is configured, so answers are fake.
+            </span>
+          ) : (
+            <>
+              Providers:{" "}
+              <span className='font-semibold text-gray-700'>
+                {[...new Set(provider.models.map((m) => m.label))].join(", ")}
+              </span>{" "}
+              · Judge: <span className='font-semibold text-gray-700'>{nameOf(provider.judge)}</span>
+            </>
+          )}
         </p>
       )}
 
@@ -104,18 +129,20 @@ const Playground = () => {
             Models <span className='font-normal text-sm'>(up to {MAX_MODELS})</span>
           </span>
           <div className='mt-2 flex flex-wrap gap-2'>
-            {provider?.models.map((model) => (
+            {provider?.models.map((m) => (
               <button
                 type='button'
-                key={model}
-                onClick={() => toggleModel(model)}
+                key={m.id}
+                onClick={() => toggleModel(m.id)}
+                title={m.label}
                 className={`rounded-full border px-3 py-1 text-sm transition ${
-                  selected.includes(model)
+                  selected.includes(m.id)
                     ? "border-black bg-black text-white"
                     : "border-gray-300 bg-white text-gray-700"
                 }`}
               >
-                {model}
+                <span className='opacity-60'>{m.label} · </span>
+                {m.model}
               </button>
             ))}
           </div>
@@ -153,12 +180,14 @@ const Playground = () => {
             <>
               <div className='flex flex-wrap items-center gap-2'>
                 <h2 className='font-satoshi text-lg font-bold text-gray-900'>Judge verdict</h2>
-                <Stat>winner: {output.verdict.winner}</Stat>
-                <Stat>judge: {output.verdict.model}</Stat>
+                <Stat>winner: {output.verdict.winner ? nameOf(output.verdict.winner) : "unclear"}</Stat>
+                <Stat>judge: {nameOf(output.verdict.model)}</Stat>
               </div>
               <p className='mt-2 text-sm text-gray-700'>{output.verdict.summary}</p>
               <h3 className='mt-4 font-satoshi font-semibold text-gray-900'>Combined best answer</h3>
-              <p className='mt-1 whitespace-pre-wrap text-sm text-gray-800'>{output.verdict.best_answer}</p>
+              <div className='md mt-1 text-sm text-gray-800'>
+                <Markdown>{output.verdict.best_answer}</Markdown>
+              </div>
             </>
           )}
         </div>
@@ -174,12 +203,15 @@ const Playground = () => {
               }`}
             >
               <div className='flex flex-wrap items-center gap-2'>
-                <h3 className='font-satoshi font-semibold text-gray-900'>{r.model}</h3>
+                <h3 className='font-satoshi font-semibold text-gray-900'>{nameOf(r.model)}</h3>
                 {r.ok && <Stat>{(r.ms / 1000).toFixed(1)}s</Stat>}
                 {r.ok && r.outputTokens != null && <Stat>{r.outputTokens} tokens</Stat>}
               </div>
               {r.ok ? (
-                <p className='mt-3 whitespace-pre-wrap text-sm text-gray-700'>{r.text}</p>
+                // react-markdown renders model output as Markdown and never runs raw HTML
+                <div className='md mt-3 text-sm text-gray-700'>
+                  <Markdown>{r.text}</Markdown>
+                </div>
               ) : (
                 <p className='mt-3 text-sm text-red-600'>{r.error}</p>
               )}

@@ -1,5 +1,5 @@
 import { getSessionUserId, unauthorized } from "@utils/auth";
-import { generate, getProvider, parseJsonReply } from "@lib/llm";
+import { generate, getUtilityModel, parseJsonReply } from "@lib/llm";
 import { rateLimit } from "@lib/rateLimit";
 
 const SYSTEM = `You are a prompt-engineering assistant.
@@ -22,12 +22,11 @@ export const POST = async (req) => {
   }
 
   try {
-    const provider = getProvider();
     const out = await generate({
-      model: provider.utilityModel(),
+      model: getUtilityModel(),
       system: SYSTEM,
       prompt,
-      maxTokens: 700,
+      maxTokens: 1000,
       temperature: 0.3,
     });
     const data = parseJsonReply(out.text);
