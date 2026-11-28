@@ -1,4 +1,5 @@
 import '@styles/globals.css';
+import Link from 'next/link';
 import Nav from '@components/nav';
 import Provider from '@components/provider';
 
@@ -19,6 +20,18 @@ const RootLayout = ({ children }) => {
                     <main className="app">
                         <Nav />
                         {children}
+                        <footer className="mt-auto w-full py-8 text-center text-xs text-gray-500">
+                            <Link href="/privacy" className="hover:underline">Privacy policy</Link>
+                            {" · "}
+                            <a
+                                href="https://github.com/AlephContinuum/share_prompts"
+                                className="hover:underline"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                Source on GitHub
+                            </a>
+                        </footer>
                     </main>
                 </Provider>
             </body>
