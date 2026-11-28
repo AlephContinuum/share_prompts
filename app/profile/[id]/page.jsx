@@ -1,34 +1,29 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
+import { useParams, useSearchParams } from "next/navigation";
 
-import Profile from "@components/Profile";
+import Profile from "@components/profile";
 
-const UserProfile = ({ params }) => {
-  const searchParams = useSearchParams();
-  const userName = searchParams.get("name");
-
+const UserProfileContent = () => {
+  const { id } = useParams();
+  const userName = useSearchParams().get("name") ?? "User";
   const [userPosts, setUserPosts] = useState([]);
 
   useEffect(() => {
-    const fetchPosts = async () => {
-      const response = await fetch(`/api/users/${params?.id}/posts`);
-      const data = await response.json();
+    if (!id) return;
+    fetch(`/api/users/${id}/posts`)
+      .then((r) => (r.ok ? r.json() : []))
+      .then(setUserPosts);
+  }, [id]);
 
-      setUserPosts(data);
-    };
-
-    if (params?.id) fetchPosts();
-  }, [params.id]);
-
-  return (
-    <Profile
-      name={userName}
-      desc={`Welcome to ${userName}'s personalized profile page. Explore ${userName}'s exceptional prompts and be inspired by the power of their imagination`}
-      data={userPosts}
-    />
-  );
+  return <Profile name={`${userName}'s`} desc={`Prompts shared by ${userName}.`} data={userPosts} />;
 };
+
+const UserProfile = () => (
+  <Suspense>
+    <UserProfileContent />
+  </Suspense>
+);
 
 export default UserProfile;
